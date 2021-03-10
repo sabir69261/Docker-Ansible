@@ -1,0 +1,46 @@
+- hosts: all
+  tasks:
+          - name: Create a docker repo
+            yum_repository:
+                    name: mydoc
+                    description: for configure docker repo
+                    baseurl: https://download.docker.com/linux/centos/7/x86_64/stable/
+                    gpgcheck: no
+          
+          - name: Install Prerequisite
+            command: pip3 install docker-py
+
+          - name: Configure docker
+            command: dnf install docker-ce --nobest -y
+
+          - name: Start the docker service
+            service:
+                    name: docker
+                    state: started
+
+          - name: Enable the docker service
+            service:
+                    name: docker
+                    enabled: yes
+
+          - name: Pull image from docker hub
+            docker_image: 
+                    name: httpd
+                    source: pull
+
+          - name: Run docker container
+            docker_container:
+                    name: webserver
+                    image: httpd
+                    interactive: yes
+                    ports:
+                    - 8080:80
+                    command: httpd -D FOREGROUND
+
+          - name: Create a file with content for webserver
+            copy:
+                    dest: /root/task.html
+                    content: "Hii I am docker, configure for task_ten using Ansble!!!!!"
+
+          - name: Copy file to webserver document root
+            command: docker cp /root/task.html webserver:/usr/local/apache2/htdocs                                        
